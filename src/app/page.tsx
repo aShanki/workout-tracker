@@ -2,10 +2,19 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, LineChart, Dumbbell, Clock } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Add theme toggle in a header */}
+      <header className="py-4 px-4 border-b">
+        <div className="container mx-auto max-w-6xl flex justify-between items-center">
+          <h1 className="text-xl font-bold">Workout Tracker</h1>
+          <ThemeToggle />
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="py-20 px-4 text-center lg:py-32 relative overflow-hidden">
         <div className="container mx-auto max-w-6xl">
