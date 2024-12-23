@@ -1,6 +1,6 @@
 MOST IMPORTANT: We are utilizing Test-Driven Development (TDD) for this project. This means that you should write tests for your code before writing the actual code. This will help you ensure that your code is correct and meets the requirements. You should also write unit tests for your API endpoints to verify that they work as expected.
 
-Continuously update tracker.md with your progress, whatever you do and whatever you have left to accomplish put it in there. This will help you keep track of your progress and help you stay on track.
+Continuously update tracker.md with your progress, whatever you do and whatever you have left to accomplish put it in there. This will help you keep track of your progress and help you stay on track. There should be no more than 5 items in the In Progress section of the tracker at any given time. If you have more than 5 items in the In Progress section, you are working on too many things at once. Any overflow should be moved to the To Do section.
 
 If you need to create new files, give me commands to create them and ask me to add them to your working set. Pause before writing code when this happens.
 
