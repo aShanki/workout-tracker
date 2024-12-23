@@ -11,7 +11,7 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const { error: signOutError } = await supabase.auth.signOut()
