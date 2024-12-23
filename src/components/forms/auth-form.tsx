@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { signInWithEmail, signUpWithEmail } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -26,6 +26,7 @@ interface AuthFormProps {
 export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const supabase = createClientComponentClient();
   
   const {
     register,
@@ -37,21 +38,43 @@ export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
     mode: 'onChange', // Enable real-time validation
   });
 
-  const onSubmit = async (data: AuthFormData) => {
+  const onSubmit = async (values: AuthFormData) => {
     try {
       setIsLoading(true);
-      if (isSignUp) {
-        await signUpWithEmail(data.email, data.password);
-        toast({ description: "Account created successfully!" });
-      } else {
-        await signInWithEmail(data.email, data.password);
-        toast({ description: "Successfully signed in!" });
+      console.log('📝 Submitting auth form:', isSignUp ? 'signup' : 'login');
+
+      const { email, password } = values;
+      const { data, error } = isSignUp
+        ? await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          })
+        : await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+      if (error) throw error;
+
+      console.log('✅ Auth success:', isSignUp ? 'signup' : 'login');
+      console.log('📝 Session data:', data.session);
+
+      // Store session
+      if (data.session) {
+        localStorage.setItem('supabase.auth.token', data.session.access_token);
+        localStorage.setItem('supabase.auth.refreshToken', data.session.refresh_token);
       }
-      reset();
+
+      window.location.href = '/dashboard';
     } catch (error) {
+      console.error('❌ Auth error:', error);
       toast({
-        variant: "destructive",
+        title: 'Error',
         description: error instanceof Error ? error.message : "Authentication failed",
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);

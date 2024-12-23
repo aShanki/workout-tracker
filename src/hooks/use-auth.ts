@@ -1,46 +1,49 @@
-import { useEffect, useState } from 'react';
-import { User, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-
-interface AuthState {
-  user: User | null;
-  loading: boolean;
-  error: AuthError | null;
-}
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useEffect, useState } from 'react'
+import { type User } from '@supabase/auth-helpers-nextjs'
 
 export function useAuth() {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    loading: true,
-    error: null,
-  });
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      setState(prev => ({
-        ...prev,
-        user: session?.user ?? null,
-        loading: false,
-        error: error,
-      }));
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setState(prev => ({
-          ...prev,
-          user: session?.user ?? null,
-          loading: false,
-        }));
+    console.log('🔍 Initializing auth hook')
+    
+    // Check current session
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('📝 Current session:', session)
+        if (error) console.error('❌ Session error:', error)
+        
+        setUser(session?.user ?? null)
+        console.log('👤 User state:', session?.user ? 'logged in' : 'not logged in')
+      } catch (error) {
+        console.error('❌ Session check error:', error)
+        setUser(null)
+      } finally {
+        setLoading(false)
       }
-    );
+    }
+
+    // Initial session check
+    checkSession()
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state change:', event, session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
 
     return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+      console.log('♻️ Cleaning up auth hook')
+      subscription.unsubscribe()
+    }
+  }, [supabase])
 
-  return state;
+  return { user, loading }
 }
