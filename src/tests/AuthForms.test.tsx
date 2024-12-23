@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '@/tests/utils/test-utils';
 import { AuthForm } from '@/components/forms/auth-form';
-import { ToastProvider } from '@/components/ui/toast';
 
 const mockSignIn = jest.fn();
 const mockSignUp = jest.fn();
@@ -15,35 +15,52 @@ jest.mock('@/lib/supabase', () => ({
   signUpWithEmail: (...args: any[]) => mockSignUp(...args),
 }));
 
+// Mock useRouter
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 describe('AuthForm', () => {
+  const mockOnModeToggle = jest.fn();
+
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ user: null, loading: false });
-    render(
-      <ToastProvider>
-        <AuthForm />
-      </ToastProvider>
-    );
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('should toggle between login and signup modes', () => {
-    expect(screen.getByText(/sign in/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByText(/need an account/i));
-    expect(screen.getByText(/sign up/i)).toBeInTheDocument();
+    render(<AuthForm onModeToggle={mockOnModeToggle} />);
+    const toggleButton = screen.getByRole('button', { name: /don't have an account\? sign up/i });
+    fireEvent.click(toggleButton);
+    expect(mockOnModeToggle).toHaveBeenCalled();
+  });
+
+  it('should show correct mode text for signup', () => {
+    render(<AuthForm isSignUp={true} />);
+    
+    // Check for submit button text
+    const submitButton = screen.getByRole('button', { name: /^sign up$/i, type: 'submit' });
+    expect(submitButton).toBeInTheDocument();
+    
+    // Check for mode toggle text
+    const toggleButton = screen.getByRole('button', { 
+      name: /already have an account\? sign in/i,
+      type: 'button'
+    });
+    expect(toggleButton).toBeInTheDocument();
   });
 
   it('should validate email format', async () => {
-    const emailInput = screen.getByLabelText(/email/i);
+    render(<AuthForm />);
+    const emailInput = screen.getByPlaceholderText(/email/i);
     
-    // Type invalid email
     fireEvent.change(emailInput, {
       target: { value: 'invalid-email' },
     });
     
-    // Trigger blur event to force validation
     fireEvent.blur(emailInput);
     
     await waitFor(() => {
@@ -53,14 +70,13 @@ describe('AuthForm', () => {
   });
 
   it('should validate password length', async () => {
-    const passwordInput = screen.getByLabelText(/password/i);
+    render(<AuthForm />);
+    const passwordInput = screen.getByPlaceholderText(/password/i);
     
-    // Type short password
     fireEvent.change(passwordInput, {
       target: { value: '12345' },
     });
     
-    // Trigger blur event
     fireEvent.blur(passwordInput);
     
     await waitFor(() => {
@@ -70,12 +86,13 @@ describe('AuthForm', () => {
   });
 
   it('should handle successful login', async () => {
+    render(<AuthForm />);
     mockSignIn.mockResolvedValueOnce({ user: { id: '1' } });
 
-    fireEvent.change(screen.getByLabelText(/email/i), {
+    fireEvent.change(screen.getByPlaceholderText(/email/i), {
       target: { value: 'test@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByPlaceholderText(/password/i), {
       target: { value: 'password123' },
     });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
@@ -83,5 +100,14 @@ describe('AuthForm', () => {
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123');
     });
+  });
+
+  it('should call onModeToggle when toggling modes', () => {
+    render(<AuthForm onModeToggle={mockOnModeToggle} />);
+    const toggleButton = screen.getByRole('button', {
+      name: /don't have an account\? sign up/i
+    });
+    fireEvent.click(toggleButton);
+    expect(mockOnModeToggle).toHaveBeenCalled();
   });
 });

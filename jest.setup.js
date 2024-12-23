@@ -65,17 +65,11 @@ jest.mock('next/server', () => {
   };
 });
 
-// Mock next/navigation
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    prefetch: jest.fn(),
-  }),
-  useSearchParams: () => ({
-    get: jest.fn(),
-  }),
-}));
+// Remove this section since it's now in test-utils
+// jest.mock('next/navigation', () => ({
+//   useRouter() {...},
+//   usePathname() {...},
+// }));
 
 beforeEach(() => {
   // Clear all mocks before each test

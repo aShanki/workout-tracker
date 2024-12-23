@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { signInWithEmail, signUpWithEmail } from '@/lib/supabase';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 const authSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -16,8 +18,12 @@ const authSchema = z.object({
 
 type AuthFormData = z.infer<typeof authSchema>;
 
-export function AuthForm() {
-  const [isLogin, setIsLogin] = useState(true);
+interface AuthFormProps {
+  isSignUp?: boolean;
+  onModeToggle?: () => void;
+}
+
+export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   
@@ -34,12 +40,12 @@ export function AuthForm() {
   const onSubmit = async (data: AuthFormData) => {
     try {
       setIsLoading(true);
-      if (isLogin) {
-        await signInWithEmail(data.email, data.password);
-        toast({ description: "Successfully signed in!" });
-      } else {
+      if (isSignUp) {
         await signUpWithEmail(data.email, data.password);
         toast({ description: "Account created successfully!" });
+      } else {
+        await signInWithEmail(data.email, data.password);
+        toast({ description: "Successfully signed in!" });
       }
       reset();
     } catch (error) {
@@ -87,17 +93,24 @@ export function AuthForm() {
           )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+        >
+          {isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
         </Button>
       </form>
 
       <Button
+        type="button"
         variant="link"
         className="w-full"
-        onClick={() => setIsLogin(!isLogin)}
+        onClick={onModeToggle}
       >
-        {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+        {isSignUp 
+          ? 'Already have an account? Sign in'
+          : "Don't have an account? Sign up"}
       </Button>
     </div>
   );
