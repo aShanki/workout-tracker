@@ -1,3 +1,5 @@
+MOST IMPORTANT: We are utilizing Test-Driven Development (TDD) for this project. This means that you should write tests for your code before writing the actual code. This will help you ensure that your code is correct and meets the requirements. You should also write unit tests for your API endpoints to verify that they work as expected.
+
 shadcn components can be added using this command:
 "npx shadcn@latest add [component]",
 
