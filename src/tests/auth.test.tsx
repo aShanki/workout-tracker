@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from './test-utils';
 import { LoginForm } from '@/components/forms/login-form';
 import { SignupForm } from '@/components/forms/signup-form';
 import { supabase } from '@/lib/supabase';
-import { useToast, toast } from '@/components/ui/toast';
 
 // Mock Supabase client
 jest.mock('@/lib/supabase', () => ({
@@ -16,14 +15,21 @@ jest.mock('@/lib/supabase', () => ({
   }
 }));
 
-// Mock toast hook
-jest.mock('@/components/ui/toast', () => {
-  const toastFn = jest.fn();
-  return {
-    useToast: () => ({ toast: toastFn }),
-    toast: toastFn
-  };
-});
+// Mock toast
+jest.mock('@/components/ui/use-toast', () => ({
+  useToast: () => ({
+    toast: jest.fn(),
+    toasts: [],
+    dismiss: jest.fn(),
+  })
+}));
+
+// Mock Radix UI toast primitives
+jest.mock('@radix-ui/react-toast', () => ({
+  ...jest.requireActual('@radix-ui/react-toast'),
+  Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  Viewport: () => null,
+}));
 
 describe('Authentication Forms', () => {
   beforeEach(() => {

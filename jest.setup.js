@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
+import 'whatwg-fetch';
+import { TextEncoder, TextDecoder } from 'util';
 
 // Cleanup after each test
 afterEach(() => {
@@ -21,6 +23,23 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock NextResponse
+jest.mock('next/server', () => {
+  const originalModule = jest.requireActual('next/server');
+  return {
+    ...originalModule,
+    NextResponse: {
+      json: (data, init) => new Response(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'content-type': 'application/json',
+          ...init?.headers,
+        },
+      }),
+    },
+  };
+});
+
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -32,3 +51,16 @@ jest.mock('next/navigation', () => ({
     get: jest.fn(),
   }),
 }));
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+global.Request = class extends Request {
+  constructor(input, init) {
+    if (typeof input === 'string') {
+      super(input, init);
+    } else {
+      super('http://localhost', init);
+    }
+  }
+};

@@ -4,10 +4,38 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+import { createContext, useContext, useState } from 'react'
 
 import { cn } from "@/lib/utils"
 
-const ToastProvider = ToastPrimitives.Provider
+const ToastContext = createContext<{
+  toast: (args: { title?: string; description?: string }) => void
+}>({
+  toast: () => {}
+})
+
+export function ToastProvider({ 
+  children,
+  swipeDirection = "right",
+  ...props
+}: ToastPrimitives.ToastProviderProps) {
+  return (
+    <ToastPrimitives.Provider
+      swipeDirection={swipeDirection}
+      {...props}
+    >
+      {children}
+    </ToastPrimitives.Provider>
+  )
+}
+
+export const useToast = () => {
+  const context = useContext(ToastContext)
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider')
+  }
+  return context
+}
 
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
