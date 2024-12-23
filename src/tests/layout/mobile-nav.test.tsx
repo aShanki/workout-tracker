@@ -113,4 +113,34 @@ describe('MobileNav', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
+
+  it('should apply proper animation classes when opening/closing', async () => {
+    render(<MobileNav items={mockNavItems} />);
+    
+    // Open menu
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    
+    // Check opening animations
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveClass('data-[state=open]:animate-in');
+    
+    // Close menu
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    
+    // Check closing animations
+    await waitFor(() => {
+      expect(dialog).toHaveClass('data-[state=closed]:animate-out');
+    });
+  });
+
+  it('should have smooth scroll behavior', async () => {
+    render(<MobileNav items={mockNavItems} />);
+    
+    // Open menu
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    
+    // Check scroll area viewport
+    const scrollViewport = screen.getByRole('navigation').querySelector('[data-radix-scroll-area-viewport]');
+    expect(scrollViewport).toHaveClass('scroll-smooth');
+  });
 });

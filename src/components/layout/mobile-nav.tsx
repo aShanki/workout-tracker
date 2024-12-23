@@ -43,35 +43,37 @@ export function MobileNav({ items }: MobileNavProps) {
           aria-controls="mobile-menu"
           aria-expanded={isOpen}
           aria-label="Open menu"
-          className="md:hidden"
+          className="md:hidden transition-transform duration-200 ease-in-out hover:scale-105"
         >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="w-[80vw] max-w-sm p-0"
+        className="w-[80vw] max-w-sm p-0 transition-transform duration-300 ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
       >
-        <SheetHeader className="px-4 pt-4">
+        <SheetHeader className="px-4 pt-4 transition-opacity duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
           <SheetTitle>Navigation Menu</SheetTitle>
           <SheetDescription>Access all available pages</SheetDescription>
         </SheetHeader>
         <ScrollArea className="h-full py-6">
-          <nav className="space-y-2 px-4">
-            {items.map((item) => (
-              <SheetClose key={item.href} asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => handleNavigate(item.href)}
-                  asChild
-                >
-                  <Link href={item.href}>
-                    {item.label}
-                  </Link>
-                </Button>
-              </SheetClose>
-            ))}
+          <nav className="space-y-2 px-4" role="navigation">
+            <div className="scroll-smooth" data-radix-scroll-area-viewport>
+              {items.map((item) => (
+                <SheetClose key={item.href} asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start transition-colors duration-200 ease-in-out hover:bg-accent/80"
+                    onClick={() => handleNavigate(item.href)}
+                    asChild
+                  >
+                    <Link href={item.href}>
+                      {item.label}
+                    </Link>
+                  </Button>
+                </SheetClose>
+              ))}
+            </div>
           </nav>
         </ScrollArea>
       </SheetContent>
