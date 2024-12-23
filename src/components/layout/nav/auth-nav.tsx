@@ -11,9 +11,42 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
 
 export function AuthNav() {
   const { user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sign out');
+      }
+
+      // Force a full page reload to clear all client state
+      window.location.href = '/login';
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to sign out. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -74,8 +107,16 @@ export function AuthNav() {
         <DropdownMenuItem asChild>
           <Link href="/settings" className="w-full">Settings</Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/api/auth/signout" className="w-full">Sign Out</Link>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            handleSignOut();
+          }}
+          className="cursor-pointer"
+          disabled={isLoading}
+          data-testid="sign-out-item"
+        >
+          {isLoading ? 'Signing out...' : 'Sign out'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

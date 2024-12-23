@@ -58,4 +58,13 @@ describe('Sign Out API Route', () => {
     expect(response.status).toBe(500)
     expect(data).toEqual({ error: 'Sign out failed' })
   })
+
+  it('should handle GET requests', async () => {
+    const { GET } = require('@/app/api/auth/signout/route')
+    const response = await GET()
+    const data = await response.json()
+
+    expect(response.status).toBe(405)
+    expect(data).toEqual({ error: 'Method not allowed' })
+  })
 })
