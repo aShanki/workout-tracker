@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from './test-utils';
 import { LoginForm } from '@/components/forms/login-form';
 import { SignupForm } from '@/components/forms/signup-form';
 import { supabase } from '@/lib/supabase';
+import { useToast, toast } from '@/components/ui/toast';
 
 // Mock Supabase client
 jest.mock('@/lib/supabase', () => ({
@@ -15,24 +16,37 @@ jest.mock('@/lib/supabase', () => ({
   }
 }));
 
+// Mock toast hook
+jest.mock('@/components/ui/toast', () => {
+  const toastFn = jest.fn();
+  return {
+    useToast: () => ({ toast: toastFn }),
+    toast: toastFn
+  };
+});
+
 describe('Authentication Forms', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Login Form', () => {
     it('renders login form with required fields', () => {
       render(<LoginForm />);
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
     });
 
     it('shows validation errors for empty fields', async () => {
       render(<LoginForm />);
-      const submitButton = screen.getByRole('button', { name: /sign in/i });
+      const submitButton = screen.getByRole('button', { name: /^sign in$/i, type: 'submit' });
       
       fireEvent.click(submitButton);
       
       await waitFor(() => {
-        expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-        expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+        expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
       });
     });
 
@@ -49,7 +63,8 @@ describe('Authentication Forms', () => {
         target: { value: 'password123' }
       });
       
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      const submitButton = screen.getByRole('button', { name: /^sign in$/i, type: 'submit' });
+      fireEvent.click(submitButton);
       
       await waitFor(() => {
         expect(mockSignIn).toHaveBeenCalledWith({
@@ -76,8 +91,8 @@ describe('Authentication Forms', () => {
       fireEvent.click(submitButton);
       
       await waitFor(() => {
-        expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-        expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+        expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
         expect(screen.getByText(/full name is required/i)).toBeInTheDocument();
       });
     });

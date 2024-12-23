@@ -10,58 +10,53 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/toast';  // Updated import
 
-const loginSchema = z.object({
+const signupSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  full_name: z.string().min(1, { message: 'Full name is required' }),
 });
 
-type LoginValues = z.infer<typeof loginSchema>;
+type SignupValues = z.infer<typeof signupSchema>;
 
-export function LoginForm() {
+export function SignupForm() {
   const { toast } = useToast();  // Use the hook
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<SignupValues>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       email: '',
       password: '',
+      full_name: '',
     },
   });
 
-  async function onSubmit(data: LoginValues) {
+  async function onSubmit(data: SignupValues) {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword(data);
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.full_name,
+          },
+        },
+      });
+      
       if (error) throw error;
+      
       toast({
         title: 'Success',
-        description: 'You have successfully logged in.',
+        description: 'Account created successfully. Please check your email for verification.',
       });
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Invalid credentials. Please try again.',
+        description: 'Failed to create account. Please try again.',
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to sign in with Google.',
-        variant: 'destructive',
-      });
     }
   }
 
@@ -95,24 +90,24 @@ export function LoginForm() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="full_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? 'Creating account...' : 'Sign up'}
           </Button>
         </form>
       </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-      <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
-        Sign in with Google
-      </Button>
     </div>
   );
 }

@@ -1,4 +1,10 @@
 import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
+
+// Cleanup after each test
+afterEach(() => {
+  cleanup();
+});
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -14,3 +20,15 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 });
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+  useSearchParams: () => ({
+    get: jest.fn(),
+  }),
+}));
