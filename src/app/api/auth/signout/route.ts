@@ -11,26 +11,8 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({
-      cookies: () => ({
-        async get(name: string) {
-          try {
-            const cookie = await Promise.resolve(cookieStore.get(name))
-            return cookie?.value
-          } catch (error) {
-            console.error('Error getting cookie:', error)
-            return null
-          }
-        },
-        async set(name: string, value: string, options: any) {
-          cookieStore.set(name, value, options)
-        },
-        async remove(name: string, options: any) {
-          cookieStore.delete(name, options)
-        }
-      })
-    })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     const { error: signOutError } = await supabase.auth.signOut()
 
@@ -46,22 +28,23 @@ export async function POST() {
       { status: 200 }
     )
 
-    // Clear all auth cookies
-    const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID
+    // Clear all auth-related cookies
     const cookiesToClear = [
-      `sb-${PROJECT_ID}-auth-token`,
-      `sb-${PROJECT_ID}-auth-token-code-verifier`
+      'supabase-auth-token',
+      'sb-access-token',
+      'sb-refresh-token',
+      `sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}-auth-token`
     ]
 
     cookiesToClear.forEach(name => {
-      response.cookies.set(name, '', {
-        expires: new Date(0),
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        httpOnly: true
-      })
+      cookieStore.delete(name)
+      cookieStore.delete(name, { path: '/' })
+      response.cookies.delete(name)
+      response.cookies.delete(name, { path: '/' })
     })
+
+    // Set redirect URL in the response
+    response.headers.set('Location', '/login')
 
     return response
   } catch (error) {
