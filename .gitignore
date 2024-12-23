@@ -42,5 +42,3 @@ next-env.d.ts
 
 # misc
 .vscode/*
-.github/*
-.github/copilot-instructions.md
