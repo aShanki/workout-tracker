@@ -118,17 +118,17 @@
 - ✅ Added hover states for navigation links
 
 ## In Progress
-- 🔄 Theme transition animations
-- 🔄 Profile data persistence
-- 🔄 Image upload integration
-- 🔄 Implement actual file upload with Supabase storage
-- 🔄 Auth flow integration testing
-- 🔄 Navigation responsiveness
-- 🔄 User menu interactions
-- 🔄 Mobile navigation implementation
-- 🔄 Navigation animation polish
 
 ## To Do
+- ⏳ Theme transition animations
+- ⏳ Profile data persistence
+- ⏳ Image upload integration
+- ⏳ Implement actual file upload with Supabase storage
+- ⏳ Auth flow integration testing
+- ⏳ Navigation responsiveness
+- ⏳ User menu interactions
+- ⏳ Mobile navigation implementation
+- ⏳ Navigation animation polish
 - ⏳ API routes for authentication
 - ⏳ Protected routes implementation
 - ⏳ User profile management
