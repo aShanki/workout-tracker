@@ -2,6 +2,8 @@ MOST IMPORTANT: We are utilizing Test-Driven Development (TDD) for this project.
 
 Continuously update tracker.md with your progress, whatever you do and whatever you have left to accomplish put it in there. This will help you keep track of your progress and help you stay on track.
 
+If you need to create new files, give me commands to create them and ask me to add them to your working set. Pause before writing code when this happens.
+
 shadcn components can be added using this command:
 "npx shadcn@latest add [component]", all available shadcn components have already been downloaded in src/components/ui/***
 
@@ -43,7 +45,7 @@ You are assisting with a Next.js project. Ensure all recommendations, code snipp
 @next/next/no-unwanted-polyfillio: Avoid unwanted usage of polyfill.io.
 Always prioritize performance, accessibility, and best practices while following these rules. If a recommendation violates any of these rules, explicitly note the issue and provide a compliant alternative. Respond with solutions designed for modern Next.js applications
 
-.
+/home/synthetix/workout-tracker/
 ├── .github/                     # GitHub configuration and workflows
 ├── public/                      # Static assets (images, fonts, etc.)
 ├── src/                         # Source code
