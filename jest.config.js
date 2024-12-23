@@ -10,6 +10,9 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(jose|@supabase|@radix-ui)/)',
+  ],
   moduleDirectories: ['node_modules', '<rootDir>/'],
 };
 
