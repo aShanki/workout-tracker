@@ -1,5 +1,7 @@
 MOST IMPORTANT: We are utilizing Test-Driven Development (TDD) for this project. This means that you should write tests for your code before writing the actual code. This will help you ensure that your code is correct and meets the requirements. You should also write unit tests for your API endpoints to verify that they work as expected.
 
+Continuously update tracker.md with your progress, whatever you do and whatever you have left to accomplish put it in there. This will help you keep track of your progress and help you stay on track.
+
 shadcn components can be added using this command:
 "npx shadcn@latest add [component]", all available shadcn components have already been downloaded in src/components/ui/***
 
