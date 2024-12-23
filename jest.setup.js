@@ -3,6 +3,31 @@ import { cleanup } from '@testing-library/react';
 import 'whatwg-fetch';
 import { TextEncoder, TextDecoder } from 'util';
 
+// Set up test environment variables
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+
+// Mock Supabase client
+jest.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(),
+      update: jest.fn(),
+      eq: jest.fn(),
+      single: jest.fn(),
+    })),
+    auth: {
+      getSession: jest.fn(() => Promise.resolve({
+        data: { session: null },
+        error: null,
+      })),
+      signUp: jest.fn(),
+      signInWithPassword: jest.fn(),
+      signOut: jest.fn(),
+    },
+  },
+}));
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();
@@ -51,6 +76,11 @@ jest.mock('next/navigation', () => ({
     get: jest.fn(),
   }),
 }));
+
+beforeEach(() => {
+  // Clear all mocks before each test
+  jest.clearAllMocks();
+});
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
