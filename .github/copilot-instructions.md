@@ -1,7 +1,7 @@
 MOST IMPORTANT: We are utilizing Test-Driven Development (TDD) for this project. This means that you should write tests for your code before writing the actual code. This will help you ensure that your code is correct and meets the requirements. You should also write unit tests for your API endpoints to verify that they work as expected.
 
 shadcn components can be added using this command:
-"npx shadcn@latest add [component]",
+"npx shadcn@latest add [component]", all available shadcn components have already been downloaded in src/components/ui/***
 
 We are using the SERN stack, Supabase, Express, React, and Node.js/Typescript in our case. We do not use prisma.
 These are the additional technologies we're using
@@ -40,3 +40,35 @@ You are assisting with a Next.js project. Ensure all recommendations, code snipp
 @next/next/no-typos: Avoid common typos in Next.js's data fetching functions.
 @next/next/no-unwanted-polyfillio: Avoid unwanted usage of polyfill.io.
 Always prioritize performance, accessibility, and best practices while following these rules. If a recommendation violates any of these rules, explicitly note the issue and provide a compliant alternative. Respond with solutions designed for modern Next.js applications
+
+.
+├── .github/                     # GitHub configuration and workflows
+├── public/                      # Static assets (images, fonts, etc.)
+├── src/                         # Source code
+│   ├── app/                     # Next.js App Router
+│   │   ├── (auth)/              # Authentication pages and layout
+│   │   ├── api/                 # API route handlers
+│   │   ├── error.tsx            # Global error handling
+│   │   ├── layout.tsx           # Root layout
+│   │   ├── loading.tsx          # Loading UI
+│   │   └── page.tsx             # Home page
+│   ├── components/              # React components
+│   │   ├── ui/                  # shadcn components
+│   │   ├── forms/               # Form components
+│   │   ├── layout/              # Layout components
+│   │   └── shared/              # Reusable components
+│   ├── hooks/                   # Custom React hooks
+│   ├── lib/                     # Utility functions and services
+│   ├── styles/                  # Global styles
+│   ├── types/                   # TypeScript definitions
+│   └── utils/                   # Additional utilities
+├── .env.local                   # Environment variables
+├── .gitignore                   # Git ignore rules
+├── components.json              # shadcn components configuration
+├── jest.config.js               # Jest configuration
+├── next.config.ts               # Next.js configuration
+├── package.json                 # Project dependencies and scripts
+├── postcss.config.mjs           # PostCSS configuration
+├── tailwind.config.ts           # Tailwind CSS configuration
+├── tsconfig.json                # TypeScript configuration
+└── README.md                    # Project documentation
