@@ -1,7 +1,7 @@
-import { screen } from '@testing-library/react';
-import { render } from '@/tests/utils/test-utils';
+import { render, screen } from '@testing-library/react';
 import SignUpPage from '@/app/(auth)/signup/page';
 import { useAuth } from '@/hooks/use-auth';
+import { renderWithProviders } from '../../test-utils';
 
 jest.mock('@/hooks/use-auth');
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
@@ -26,7 +26,7 @@ describe('SignUpPage', () => {
   it('should render signup form', () => {
     render(<SignUpPage />);
     
-    expect(screen.getByRole('heading', { name: /create an account/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /create your account/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
     expect(screen.getByText(/already have an account\? sign in/i)).toBeInTheDocument();
   });

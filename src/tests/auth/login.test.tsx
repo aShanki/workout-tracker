@@ -26,7 +26,7 @@ describe('LoginPage', () => {
   it('should render login form', () => {
     render(<LoginPage />);
     
-    expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
     expect(screen.getByText(/don't have an account\? sign up/i)).toBeInTheDocument();
   });

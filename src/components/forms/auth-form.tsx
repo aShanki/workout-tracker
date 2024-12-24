@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
+import { signInWithEmail, signUpWithEmail } from '@/lib/supabase';
+import { AuthFormValues, authSchema } from '@/lib/validations/auth';
 
 const authSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -29,90 +31,79 @@ export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
   const { toast } = useToast();
   const supabase = createClientComponentClient();
   
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm<AuthFormData>({
+  const form = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema),
-    mode: 'onChange', // Enable real-time validation
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onBlur', // Enable validation on blur
   });
 
-  const onSubmit = async (values: AuthFormData) => {
+  const onSubmit = useCallback(async (data: AuthFormValues) => {
     try {
-      setIsLoading(true);
-      console.log('📝 Submitting auth form:', isSignUp ? 'signup' : 'login');
-
-      const { email, password } = values;
-      const { data, error } = isSignUp
-        ? await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`,
-            },
-          })
-        : await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-      if (error) throw error;
-
-      console.log('✅ Auth success:', isSignUp ? 'signup' : 'login');
-      console.log('📝 Session data:', data.session);
-
-      // Store session
-      if (data.session) {
-        localStorage.setItem('supabase.auth.token', data.session.access_token);
-        localStorage.setItem('supabase.auth.refreshToken', data.session.refresh_token);
+      if (isSignUp) {
+        await signUpWithEmail(data.email, data.password)
+      } else {
+        await signInWithEmail(data.email, data.password)
       }
-
-      window.location.href = '/dashboard';
     } catch (error) {
-      console.error('❌ Auth error:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : "Authentication failed",
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Auth error:', error)
     }
-  };
+  }, [isSignUp]);
 
   return (
     <div className="w-full max-w-md space-y-6">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form 
+        className="space-y-4" 
+        onSubmit={form.handleSubmit(onSubmit)}
+        role="form"
+        aria-label={isSignUp ? 'Sign up form' : 'Sign in form'}
+      >
         <div className="space-y-2">
           <Input
-            {...register('email')}
+            {...form.register('email', { 
+              required: true,
+              validate: (value) => {
+                try {
+                  authSchema.shape.email.parse(value);
+                  return true;
+                } catch (error) {
+                  return false;
+                }
+              }
+            })}
             type="email"
             placeholder="Email"
             aria-label="email"
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? "email-error" : undefined}
+            aria-invalid={!!form.formState.errors.email}
+            aria-describedby={form.formState.errors.email ? "email-error" : undefined}
           />
-          {errors.email && (
-            <p id="email-error" className="text-sm text-red-500" role="alert">
-              {errors.email.message}
+          {form.formState.errors.email && (
+            <p role="alert" id="email-error" className="text-sm text-red-500">
+              {form.formState.errors.email.message || 'Invalid email address'}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
           <Input
-            {...register('password')}
+            {...form.register('password', {
+              required: true,
+              minLength: {
+                value: 6,
+                message: 'Password must be at least 6 characters',
+              },
+            })}
             type="password"
             placeholder="Password"
             aria-label="password"
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? "password-error" : undefined}
+            aria-invalid={!!form.formState.errors.password}
+            aria-describedby={form.formState.errors.password ? "password-error" : undefined}
           />
-          {errors.password && (
-            <p id="password-error" className="text-sm text-red-500" role="alert">
-              {errors.password.message}
+          {form.formState.errors.password && (
+            <p role="alert" id="password-error" className="text-sm text-red-500">
+              {form.formState.errors.password.message || 'Invalid password'}
             </p>
           )}
         </div>

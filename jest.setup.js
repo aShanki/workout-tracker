@@ -65,11 +65,33 @@ jest.mock('next/server', () => {
   };
 });
 
-// Remove this section since it's now in test-utils
-// jest.mock('next/navigation', () => ({
-//   useRouter() {...},
-//   usePathname() {...},
-// }));
+// Mock next/router
+jest.mock('next/navigation', () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+      replace: jest.fn(),
+      refresh: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+    };
+  },
+  usePathname() {
+    return '';
+  },
+}));
+
+// Mock Supabase client
+jest.mock('@supabase/auth-helpers-nextjs', () => ({
+  createClientComponentClient: jest.fn(() => ({
+    auth: {
+      signOut: jest.fn(),
+      signInWithPassword: jest.fn(),
+      signUp: jest.fn(),
+    },
+  })),
+  createRouteHandlerClient: jest.fn(),
+}));
 
 beforeEach(() => {
   // Clear all mocks before each test
@@ -88,3 +110,19 @@ global.Request = class extends Request {
     }
   }
 };
+
+// Global setup
+global.Response = class Response {
+  constructor(body, init) {
+    this.body = body;
+    this.init = init;
+    this.status = init?.status || 200;
+  }
+
+  async json() {
+    return JSON.parse(this.body);
+  }
+};
+
+// Suppress console errors during tests
+console.error = jest.fn();

@@ -1,8 +1,25 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import * as ToastPrimitives from "@radix-ui/react-toast";
+import { ToastProvider } from '@/components/ui/toast';
 
-// Create a mock toast provider that implements the Radix UI context
+// Mock Next.js navigation
+jest.mock('next/navigation', () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+      replace: jest.fn(),
+      refresh: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+    };
+  },
+  usePathname() {
+    return '';
+  },
+}));
+
+// Create a mock toast provider
 const MockToastProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ToastPrimitives.Provider>
@@ -12,30 +29,14 @@ const MockToastProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Mock toast context
-const ToastContext = React.createContext<{
-  toast: (args: { title?: string; description?: string }) => void;
-  toasts: any[];
-}>({
-  toast: () => {},
-  toasts: [],
-});
-
-function Wrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <ToastContext.Provider value={{ toast: () => {}, toasts: [] }}>
-      <MockToastProvider>
-        {children}
-      </MockToastProvider>
-    </ToastContext.Provider>
+export function renderWithProviders(ui: React.ReactElement) {
+  return rtlRender(
+    <MockToastProvider>
+      <ToastProvider>
+        {ui}
+      </ToastProvider>
+    </MockToastProvider>
   );
-}
-
-export function render(ui: React.ReactElement, options = {}) {
-  return rtlRender(ui, {
-    wrapper: Wrapper,
-    ...options,
-  });
 }
 
 export * from '@testing-library/react';

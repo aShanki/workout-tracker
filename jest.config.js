@@ -11,7 +11,7 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(jose|@supabase|@radix-ui)/)',
+    'node_modules/(?!(jose|@supabase/auth-helpers-nextjs|@supabase/auth-helpers-shared)/)',
   ],
   moduleDirectories: ['node_modules', '<rootDir>/'],
 };

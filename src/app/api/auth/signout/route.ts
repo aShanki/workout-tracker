@@ -2,51 +2,31 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = createRouteHandlerClient({ cookies })
+    const { error } = await supabase.auth.signOut()
 
-    // Clear server-side session
-    await supabase.auth.signOut()
-    
-    // Create response with no-cache headers
-    const response = NextResponse.json(
-      { success: true },
-      { 
-        status: 200,
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-          'Surrogate-Control': 'no-store'
-        }
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
+
+    // Clear all auth-related cookies
+    const cookieStore = cookies()
+    const allCookies = cookieStore.getAll()
+    allCookies.forEach(cookie => {
+      if (cookie.name.includes('supabase') || cookie.name.includes('auth')) {
+        cookieStore.set(cookie.name, '', { maxAge: 0 })
       }
-    )
-
-    // Clear all auth cookies
-    const PROJECT_ID = process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID
-    const cookiesToClear = [
-      `sb-${PROJECT_ID}-auth-token`,
-      'sb-access-token',
-      'sb-refresh-token',
-      'supabase-auth-token'
-    ]
-
-    cookiesToClear.forEach(name => {
-      response.cookies.set(name, '', {
-        path: '/',
-        expires: new Date(0),
-        maxAge: 0,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      })
     })
 
-    return response
+    return NextResponse.json(
+      { message: 'Successfully signed out' },
+      { status: 200 }
+    )
   } catch (error) {
     console.error('Sign out error:', error)
     return NextResponse.json(

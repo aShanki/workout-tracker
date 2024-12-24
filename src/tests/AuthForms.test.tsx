@@ -1,6 +1,7 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { render } from '@/tests/utils/test-utils';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { AuthForm } from '@/components/forms/auth-form';
+import { renderWithProviders } from './test-utils';
 
 const mockSignIn = jest.fn();
 const mockSignUp = jest.fn();
@@ -31,6 +32,16 @@ describe('AuthForm', () => {
     jest.clearAllMocks();
   });
 
+  it('should render login form by default', () => {
+    renderWithProviders(<AuthForm />)
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
+  })
+
+  it('should render signup form when isSignUp is true', () => {
+    renderWithProviders(<AuthForm isSignUp />)
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument()
+  })
+
   it('should toggle between login and signup modes', () => {
     render(<AuthForm onModeToggle={mockOnModeToggle} />);
     const toggleButton = screen.getByRole('button', { name: /don't have an account\? sign up/i });
@@ -54,52 +65,54 @@ describe('AuthForm', () => {
   });
 
   it('should validate email format', async () => {
-    render(<AuthForm />);
+    renderWithProviders(<AuthForm />);
+    const user = userEvent.setup();
     const emailInput = screen.getByPlaceholderText(/email/i);
     
-    fireEvent.change(emailInput, {
-      target: { value: 'invalid-email' },
-    });
-    
-    fireEvent.blur(emailInput);
+    await user.type(emailInput, 'invalid-email');
+    fireEvent.blur(emailInput); // Trigger validation
     
     await waitFor(() => {
       const errorMessage = screen.getByRole('alert');
+      expect(errorMessage).toBeInTheDocument();
       expect(errorMessage).toHaveTextContent(/invalid email address/i);
     });
   });
 
   it('should validate password length', async () => {
-    render(<AuthForm />);
+    renderWithProviders(<AuthForm />);
+    const user = userEvent.setup();
     const passwordInput = screen.getByPlaceholderText(/password/i);
     
-    fireEvent.change(passwordInput, {
-      target: { value: '12345' },
-    });
-    
-    fireEvent.blur(passwordInput);
+    await user.type(passwordInput, '12345');
+    fireEvent.blur(passwordInput); // Trigger validation
     
     await waitFor(() => {
       const errorMessage = screen.getByRole('alert');
+      expect(errorMessage).toBeInTheDocument();
       expect(errorMessage).toHaveTextContent(/password must be at least 6 characters/i);
     });
   });
 
   it('should handle successful login', async () => {
-    render(<AuthForm />);
+    const user = userEvent.setup();
     mockSignIn.mockResolvedValueOnce({ user: { id: '1' } });
+    
+    renderWithProviders(<AuthForm />);
+    
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    const passwordInput = screen.getByPlaceholderText(/password/i);
+    const form = screen.getByRole('form');
 
-    fireEvent.change(screen.getByPlaceholderText(/email/i), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText(/password/i), {
-      target: { value: 'password123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(emailInput, 'test@example.com');
+    await user.type(passwordInput, 'password123');
+    
+    // Use form submission instead of button click
+    fireEvent.submit(form);
 
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123');
-    });
+    }, { timeout: 3000 });
   });
 
   it('should call onModeToggle when toggling modes', () => {
