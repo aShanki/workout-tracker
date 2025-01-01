@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, description, exercises, scheduledFor } = body;
 
+    // Create the workout
     const { data: workout, error: workoutError } = await supabase
       .from('workouts')
       .insert({
@@ -25,12 +26,11 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (workoutError) {
-      return NextResponse.json({ error: workoutError.message }, { status: 400 });
-    }
+    if (workoutError) throw workoutError;
 
-    if (exercises && exercises.length > 0) {
-      const workoutExercises = exercises.map((exercise: any) => ({
+    // Add exercises if provided
+    if (exercises?.length > 0) {
+      const workoutExercises = exercises.map(exercise => ({
         workout_id: workout.id,
         exercise_id: exercise.id,
         sets: exercise.sets,
@@ -43,16 +43,15 @@ export async function POST(req: Request) {
         .from('workout_exercises')
         .insert(workoutExercises);
 
-      if (exerciseError) {
-        return NextResponse.json({ error: exerciseError.message }, { status: 400 });
-      }
+      if (exerciseError) throw exerciseError;
     }
 
     return NextResponse.json(workout, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error creating workout:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
+      { error: error.message || 'Internal Server Error' },
+      { status: error.status || 500 }
     );
   }
 }
@@ -78,15 +77,14 @@ export async function GET(req: Request) {
       .eq('user_id', session.user.id)
       .order('scheduled_for', { ascending: true });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    if (error) throw error;
 
     return NextResponse.json(workouts, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error fetching workouts:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
+      { error: error.message || 'Internal Server Error' },
+      { status: error.status || 500 }
     );
   }
 }
@@ -109,16 +107,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       .update({
         name,
         description,
-        scheduled_for: scheduledFor
+        scheduled_for: scheduledFor,
+        updated_at: new Date().toISOString()
       })
       .eq('id', params.id)
       .eq('user_id', session.user.id)
       .select()
       .single();
 
-    if (workoutError) {
-      return NextResponse.json({ error: workoutError.message }, { status: 400 });
-    }
+    if (workoutError) throw workoutError;
 
     // Update exercises if provided
     if (exercises) {
@@ -129,29 +126,30 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         .eq('workout_id', params.id);
 
       // Insert new exercises
-      const workoutExercises = exercises.map((exercise: any) => ({
-        workout_id: params.id,
-        exercise_id: exercise.id,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        weight: exercise.weight,
-        notes: exercise.notes
-      }));
+      if (exercises.length > 0) {
+        const workoutExercises = exercises.map(exercise => ({
+          workout_id: params.id,
+          exercise_id: exercise.id,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          weight: exercise.weight,
+          notes: exercise.notes
+        }));
 
-      const { error: exerciseError } = await supabase
-        .from('workout_exercises')
-        .insert(workoutExercises);
+        const { error: exerciseError } = await supabase
+          .from('workout_exercises')
+          .insert(workoutExercises);
 
-      if (exerciseError) {
-        return NextResponse.json({ error: exerciseError.message }, { status: 400 });
+        if (exerciseError) throw exerciseError;
       }
     }
 
     return NextResponse.json(workout, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating workout:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
+      { error: error.message || 'Internal Server Error' },
+      { status: error.status || 500 }
     );
   }
 }
@@ -171,15 +169,14 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       .eq('id', params.id)
       .eq('user_id', session.user.id);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    if (error) throw error;
 
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error deleting workout:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
+      { error: error.message || 'Internal Server Error' },
+      { status: error.status || 500 }
     );
   }
 }

@@ -3,26 +3,23 @@ import { WorkoutForm } from '@/components/workouts/workout-form';
 import { describe, expect, it, jest } from '@jest/globals';
 import userEvent from '@testing-library/user-event';
 
-// Mock RadixUI components
-jest.mock('@radix-ui/react-select', () => ({
-  Root: ({ children, onValueChange }: any) => (
-    <div data-testid="select-root">
-      {children}
-      <select onChange={(e) => onValueChange(e.target.value)}>
+// Mock Radix UI Select component
+jest.mock('@/components/ui/select', () => ({
+  Select: ({ children, onValueChange }: any) => (
+    <div>
+      <select data-testid="exercise-select" onChange={(e) => onValueChange(e.target.value)}>
+        <option value="">Select an exercise</option>
         <option value="1">Squats</option>
         <option value="2">Bench Press</option>
       </select>
-    </div>
-  ),
-  Trigger: ({ children }: any) => <button data-testid="select-trigger">{children}</button>,
-  Value: ({ children }: any) => <span>{children}</span>,
-  Portal: ({ children }: any) => <div>{children}</div>,
-  Content: ({ children }: any) => <div>{children}</div>,
-  Viewport: ({ children }: any) => <div>{children}</div>,
-  Item: ({ children, value }: any) => (
-    <div data-value={value} role="option">
       {children}
     </div>
+  ),
+  SelectTrigger: ({ children }: any) => <div>{children}</div>,
+  SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
+  SelectContent: ({ children }: any) => <div>{children}</div>,
+  SelectItem: ({ value, children }: any) => (
+    <option value={value}>{children}</option>
   ),
 }));
 
@@ -52,13 +49,15 @@ describe('WorkoutForm', () => {
     await userEvent.click(screen.getByText(/add exercise/i));
     
     // Select exercise using mocked select
-    const select = screen.getByTestId('select-trigger');
-    await userEvent.click(select);
-    await userEvent.selectOptions(screen.getByRole('combobox'), '1');
+    const select = screen.getByTestId('exercise-select');
+    await userEvent.selectOptions(select, '1');
     
     // Fill in sets and reps
-    await userEvent.type(screen.getByLabelText(/sets/i), '3');
-    await userEvent.type(screen.getByLabelText(/reps/i), '10');
+    const setsInput = screen.getByLabelText(/sets/i);
+    const repsInput = screen.getByLabelText(/reps/i);
+    
+    await userEvent.type(setsInput, '3');
+    await userEvent.type(repsInput, '10');
     
     expect(screen.getByText('Squats')).toBeInTheDocument();
   });
@@ -72,9 +71,8 @@ describe('WorkoutForm', () => {
     
     // Add exercise
     await userEvent.click(screen.getByText(/add exercise/i));
-    const select = screen.getByTestId('select-trigger');
-    await userEvent.click(select);
-    await userEvent.selectOptions(screen.getByRole('combobox'), '1');
+    const select = screen.getByTestId('exercise-select');
+    await userEvent.selectOptions(select, '1');
     
     await userEvent.type(screen.getByLabelText(/sets/i), '3');
     await userEvent.type(screen.getByLabelText(/reps/i), '10');
@@ -115,9 +113,8 @@ describe('WorkoutForm', () => {
     
     // Add exercise
     await userEvent.click(screen.getByText(/add exercise/i));
-    const select = screen.getByTestId('select-trigger');
-    await userEvent.click(select);
-    await userEvent.selectOptions(screen.getByRole('combobox'), '1');
+    const select = screen.getByTestId('exercise-select');
+    await userEvent.selectOptions(select, '1');
     
     // Remove exercise
     await userEvent.click(screen.getByRole('button', { name: /remove/i }));
