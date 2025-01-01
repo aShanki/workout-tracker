@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
@@ -37,7 +37,7 @@ global.window.google = {
 // Mock next/script
 jest.mock('next/script', () => ({
   __esModule: true,
-  default: ({ onLoad, onError }) => {
+  default: ({ onLoad }) => {
     // Simulate successful script load after a short delay
     setTimeout(() => {
       onLoad?.();
@@ -49,11 +49,21 @@ jest.mock('next/script', () => ({
 describe('GoogleAuthButton', () => {
   const mockToast = jest.fn();
   const mockPush = jest.fn();
+  const originalEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+    // Set up test environment variables
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: 'test-client-id',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   it('should show loading state initially', () => {
@@ -65,7 +75,12 @@ describe('GoogleAuthButton', () => {
     render(<GoogleAuthButton />);
     
     await waitFor(() => {
-      expect(mockGoogleAccounts.id.initialize).toHaveBeenCalled();
+      expect(mockGoogleAccounts.id.initialize).toHaveBeenCalledWith(
+        expect.objectContaining({
+          client_id: 'test-client-id',
+          auto_select: false,
+        })
+      );
     });
   });
 
@@ -86,7 +101,18 @@ describe('GoogleAuthButton', () => {
     render(<GoogleAuthButton />);
     
     await waitFor(() => {
-      expect(screen.getByText('Failed to load Google Sign-In')).toBeInTheDocument();
+      expect(screen.getByText('Failed to initialize Google Sign-In')).toBeInTheDocument();
+    });
+  });
+
+  it('should show error when Google Client ID is not configured', async () => {
+    // Remove the client ID from env
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = '';
+    
+    render(<GoogleAuthButton />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Google Client ID not configured')).toBeInTheDocument();
     });
   });
 });
