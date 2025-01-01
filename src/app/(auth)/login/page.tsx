@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AuthForm } from '@/components/forms/auth-form';
 import { Loader2 } from 'lucide-react';
-import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -42,12 +41,6 @@ export default function LoginPage() {
         Enter your credentials to access your account
       </p>
       <AuthForm onModeToggle={handleModeToggle} />
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-      </div>
-      <GoogleAuthButton />
     </div>
   );
 }

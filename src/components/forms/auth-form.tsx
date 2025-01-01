@@ -53,7 +53,7 @@ export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
   }, [isSignUp]);
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    <div className="w-full max-w-md space-y-8">
       <form 
         className="space-y-4" 
         onSubmit={form.handleSubmit(onSubmit)}
@@ -117,9 +117,20 @@ export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
         </Button>
       </form>
 
-      <div className="relative my-6">
+      <Button
+        type="button"
+        variant="link"
+        className="w-full"
+        onClick={onModeToggle}
+      >
+        {isSignUp 
+          ? 'Already have an account? Sign in'
+          : "Don't have an account? Sign up"}
+      </Button>
+
+      <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+          <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
@@ -128,20 +139,7 @@ export function AuthForm({ isSignUp = false, onModeToggle }: AuthFormProps) {
         </div>
       </div>
 
-      <div className="flex justify-center w-full">
-        <GoogleAuthButton />
-      </div>
-
-      <Button
-        type="button"
-        variant="link"
-        className="w-full mt-4 font-normal"
-        onClick={onModeToggle}
-      >
-        {isSignUp 
-          ? 'Already have an account? Sign in'
-          : "Don't have an account? Sign up"}
-      </Button>
+      <GoogleAuthButton />
     </div>
   );
 }
