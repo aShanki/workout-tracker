@@ -14,11 +14,13 @@ declare global {
   }
 }
 
+const supabase = createClient();
+
 export function GoogleAuthButton() {
-  const [isReady, setIsReady] = useState(false);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  const [errorMessage, setErrorMessage] = useState('');
+  const buttonContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -45,25 +47,40 @@ export function GoogleAuthButton() {
         variant: 'destructive',
       });
     }
-  }, [router, supabase.auth, toast]);
+  }, [router, toast]);
 
   useEffect(() => {
     window.handleSignInWithGoogle = handleCredentialResponse;
   }, [handleCredentialResponse]);
 
   const initializeGoogleSignIn = useCallback(() => {
-    if (!window.google?.accounts?.id || !buttonRef.current) return;
+    if (!window.google?.accounts?.id) {
+      setHasError(true);
+      setErrorMessage('Google API not available');
+      return;
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      setHasError(true);
+      setErrorMessage('Google Client ID not configured');
+      return;
+    }
+
+    if (!buttonContainerRef.current) {
+      console.error('Button container not found');
+      return;
+    }
 
     try {
       window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        client_id: clientId,
         callback: window.handleSignInWithGoogle,
         auto_select: false,
-        use_fedcm_for_prompt: true,
       });
 
       window.google.accounts.id.renderButton(
-        buttonRef.current,
+        buttonContainerRef.current,
         {
           theme: 'outline',
           size: 'large',
@@ -73,22 +90,24 @@ export function GoogleAuthButton() {
         }
       );
 
-      setIsReady(true);
+      setIsScriptLoaded(true);
     } catch (err) {
       console.error('Failed to initialize Google Sign-In:', err);
       setHasError(true);
+      setErrorMessage('Failed to initialize Google Sign-In');
     }
   }, []);
 
-  const handleScriptLoad = useCallback(() => {
-    // Small delay to ensure Google SDK is fully loaded
-    setTimeout(initializeGoogleSignIn, 50);
-  }, [initializeGoogleSignIn]);
+  useEffect(() => {
+    if (isScriptLoaded && buttonContainerRef.current) {
+      initializeGoogleSignIn();
+    }
+  }, [isScriptLoaded, initializeGoogleSignIn]);
 
   if (hasError) {
     return (
       <div className="w-full text-center text-red-500">
-        <p>Failed to load Google Sign-In</p>
+        <p>{errorMessage}</p>
         <button 
           onClick={() => window.location.reload()}
           className="text-sm text-blue-500 hover:underline mt-2"
@@ -104,12 +123,15 @@ export function GoogleAuthButton() {
       <Script
         src="https://accounts.google.com/gsi/client"
         strategy="afterInteractive"
-        onLoad={handleScriptLoad}
-        onError={() => setHasError(true)}
+        onLoad={() => setIsScriptLoaded(true)}
+        onError={() => {
+          setHasError(true);
+          setErrorMessage('Failed to load Google script');
+        }}
         id="google-signin"
       />
       <div className="w-full flex justify-center items-center min-h-[40px]">
-        {!isReady ? (
+        {!isScriptLoaded ? (
           <Loader2 
             className="h-6 w-6 animate-spin" 
             role="status" 
@@ -117,7 +139,7 @@ export function GoogleAuthButton() {
           />
         ) : (
           <div 
-            ref={buttonRef}
+            ref={buttonContainerRef}
             id="google-button"
             data-testid="google-button"
             className="w-[300px] h-[40px] flex justify-center items-center"

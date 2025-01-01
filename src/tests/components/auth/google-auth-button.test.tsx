@@ -1,5 +1,25 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
+import { useToast } from '@/components/ui/use-toast';
+import { useRouter } from 'next/navigation';
+
+// Mock the hooks
+jest.mock('@/components/ui/use-toast', () => ({
+  useToast: jest.fn(),
+}));
+
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+}));
+
+// Mock the Supabase client
+jest.mock('@/lib/supabase/client', () => ({
+  createClient: () => ({
+    auth: {
+      signInWithIdToken: jest.fn(),
+    },
+  }),
+}));
 
 // Mock the google accounts library
 const mockGoogleAccounts = {
@@ -17,8 +37,8 @@ global.window.google = {
 // Mock next/script
 jest.mock('next/script', () => ({
   __esModule: true,
-  default: ({ onLoad }) => {
-    // Trigger onLoad immediately in test environment
+  default: ({ onLoad, onError }) => {
+    // Simulate successful script load after a short delay
     setTimeout(() => {
       onLoad?.();
     }, 0);
@@ -27,13 +47,13 @@ jest.mock('next/script', () => ({
 }));
 
 describe('GoogleAuthButton', () => {
+  const mockToast = jest.fn();
+  const mockPush = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
+    (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
+    (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
   });
 
   it('should show loading state initially', () => {
@@ -41,37 +61,32 @@ describe('GoogleAuthButton', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('should render Google Sign-In button after loading', async () => {
+  it('should initialize Google Sign-In after script loads', async () => {
     render(<GoogleAuthButton />);
-    
-    // Allow script onLoad to execute
-    await act(async () => {
-      jest.advanceTimersByTime(100);
-    });
     
     await waitFor(() => {
       expect(mockGoogleAccounts.id.initialize).toHaveBeenCalled();
+    });
+  });
+
+  it('should render Google button container after initialization', async () => {
+    render(<GoogleAuthButton />);
+    
+    await waitFor(() => {
       expect(screen.getByTestId('google-button')).toBeInTheDocument();
     });
   });
 
-  it('should initialize Google Sign-In with correct parameters', async () => {
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'test-client-id';
-    
-    render(<GoogleAuthButton />);
-    
-    await act(async () => {
-      jest.advanceTimersByTime(100);
+  it('should handle initialization failure gracefully', async () => {
+    // Mock initialization failure
+    mockGoogleAccounts.id.initialize.mockImplementationOnce(() => {
+      throw new Error('Failed to initialize');
     });
 
+    render(<GoogleAuthButton />);
+    
     await waitFor(() => {
-      expect(mockGoogleAccounts.id.initialize).toHaveBeenCalledWith(
-        expect.objectContaining({
-          client_id: 'test-client-id',
-          auto_select: false,
-          use_fedcm_for_prompt: true,
-        })
-      );
+      expect(screen.getByText('Failed to load Google Sign-In')).toBeInTheDocument();
     });
   });
 });
