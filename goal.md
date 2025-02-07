@@ -26,7 +26,7 @@ Generate Reports: Generate reports on past workouts and progress.
 Constraints
 You are free to choose the programming language and database of your choice. Actual decisions for the database schema, API endpoints, and other implementation details are up to you. However, you should consider the following constraints:
 
-Database: Use a relational database to store user data, workout plans, and exercise data. (We are using supabase for this)
+Database: Use a relational database to store user data, workout plans, and exercise data.
 API: Develop a RESTful API to interact with the database.
 Security: Implement JWT authentication to secure the API endpoints.
 Testing: Write unit tests to ensure the correctness of your code.
