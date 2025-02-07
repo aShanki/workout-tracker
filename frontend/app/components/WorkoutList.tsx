@@ -49,7 +49,7 @@ export function WorkoutList({ workouts, onStatusChange, onDelete }: WorkoutListP
                 </Badge>
                 <Menu position="bottom-end" shadow="md">
                   <Menu.Target>
-                    <ActionIcon>
+                    <ActionIcon data-testid={`menu-button-${workout.id}`}>
                       <IconDots size={16} />
                     </ActionIcon>
                   </Menu.Target>
@@ -60,6 +60,7 @@ export function WorkoutList({ workouts, onStatusChange, onDelete }: WorkoutListP
                         color="green"
                         icon={<IconCheck size={16} />}
                         onClick={() => onStatusChange(workout.id, 'completed')}
+                        data-testid={`complete-button-${workout.id}`}
                       >
                         Mark as Completed
                       </Menu.Item>
@@ -69,6 +70,7 @@ export function WorkoutList({ workouts, onStatusChange, onDelete }: WorkoutListP
                         color="red"
                         icon={<IconX size={16} />}
                         onClick={() => onStatusChange(workout.id, 'cancelled')}
+                        data-testid={`cancel-button-${workout.id}`}
                       >
                         Cancel Workout
                       </Menu.Item>
@@ -77,6 +79,7 @@ export function WorkoutList({ workouts, onStatusChange, onDelete }: WorkoutListP
                       color="red"
                       icon={<IconTrash size={16} />}
                       onClick={() => onDelete(workout.id)}
+                      data-testid={`delete-button-${workout.id}`}
                     >
                       Delete
                     </Menu.Item>
@@ -90,7 +93,7 @@ export function WorkoutList({ workouts, onStatusChange, onDelete }: WorkoutListP
             {workout.description || 'No description provided'}
           </Text>
 
-          <Text size="sm" mt="md" fw={500}>
+          <Text size="sm" mt="md" fw={500} data-testid={`scheduled-date-${workout.id}`}>
             Scheduled for: {formatDate(workout.scheduledAt)}
           </Text>
 
@@ -102,7 +105,7 @@ export function WorkoutList({ workouts, onStatusChange, onDelete }: WorkoutListP
               if (!exerciseDetails) return null
 
               return (
-                <Group key={index} position="apart">
+                <Group key={index} position="apart" data-testid="exercise-group">
                   <Text size="sm">
                     {exerciseDetails.name}
                     {exercise.notes && (

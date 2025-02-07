@@ -30,7 +30,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
       scheduledAt: undefined,
     },
     validate: {
-      name: (value) => (value.length < 1 ? 'Name is required' : null),
+      name: (value) => (!value.trim() ? 'Name is required' : null),
     },
   })
 
@@ -70,18 +70,20 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
   }
 
   return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
+    <form onSubmit={form.onSubmit(onSubmit)} data-testid="workout-form">
       <Stack spacing="md">
         <TextInput
           required
           label="Workout Name"
           placeholder="e.g., Monday Upper Body"
+          data-testid="workout-name-input"
           {...form.getInputProps('name')}
         />
 
         <Textarea
           label="Description"
           placeholder="Workout description"
+          data-testid="workout-description-input"
           {...form.getInputProps('description')}
         />
 
@@ -97,6 +99,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
                   data={exercises.map(ex => ({ value: ex.id, label: ex.name }))}
                   value={exercise.exerciseId}
                   onChange={(value) => handleUpdateExercise(exerciseIndex, 'exerciseId', value)}
+                  data-testid={`exercise-select-${exerciseIndex}`}
                 />
 
                 <Textarea
@@ -104,6 +107,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
                   placeholder="Exercise notes"
                   value={exercise.notes}
                   onChange={(e) => handleUpdateExercise(exerciseIndex, 'notes', e.target.value)}
+                  data-testid={`exercise-notes-${exerciseIndex}`}
                 />
 
                 {exercise.sets.map((set, setIndex) => (
@@ -114,6 +118,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
                       min={0}
                       value={set.reps}
                       onChange={(value) => handleUpdateSet(exerciseIndex, setIndex, 'reps', Number(value))}
+                      data-testid={`reps-input-${exerciseIndex}-${setIndex}`}
                     />
                     <NumberInput
                       required
@@ -121,6 +126,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
                       min={0}
                       value={set.weight}
                       onChange={(value) => handleUpdateSet(exerciseIndex, setIndex, 'weight', Number(value))}
+                      data-testid={`weight-input-${exerciseIndex}-${setIndex}`}
                     />
                   </Group>
                 ))}
@@ -128,6 +134,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
                 <Button
                   variant="outline"
                   onClick={() => handleAddSet(exerciseIndex)}
+                  data-testid={`add-set-button-${exerciseIndex}`}
                 >
                   Add Set
                 </Button>
@@ -139,12 +146,13 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
             variant="outline"
             onClick={handleAddExercise}
             mb="lg"
+            data-testid="add-exercise-button"
           >
             Add Exercise
           </Button>
         </Box>
 
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} data-testid="submit-button">
           Create Workout
         </Button>
       </Stack>
