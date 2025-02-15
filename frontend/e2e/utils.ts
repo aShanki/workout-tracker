@@ -40,3 +40,48 @@ export async function seedTestData(page: Page) {
           description: 'Barbell bench press',
           category: 'Chest'
         },
+        {
+          id: '2', 
+          name: 'Squat',
+          description: 'Barbell back squat',
+          category: 'Legs'
+        }
+      ],
+      workouts: [
+        {
+          id: '1',
+          name: 'Test Workout 1',
+          description: 'First test workout',
+          exercises: [
+            {
+              exerciseId: '1',
+              sets: [
+                { reps: 10, weight: 100 },
+                { reps: 8, weight: 110 }
+              ],
+              notes: 'Test note'
+            }
+          ],
+          scheduledDate: new Date().toISOString()
+        }
+      ],
+      initialized: true
+    };
+  });
+  
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+}
+
+export async function clearTestData(page: Page) {
+  await page.addInitScript(() => {
+    window.__testState = {
+      exercises: [],
+      workouts: [],
+      initialized: true
+    };
+  });
+  
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+}
