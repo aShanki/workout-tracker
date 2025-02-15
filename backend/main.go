@@ -86,6 +86,11 @@ workouts.GET("/", workoutHandler.ListWorkouts)
 workouts.GET("/:id", workoutHandler.GetWorkout)
 workouts.PUT("/:id", workoutHandler.UpdateWorkout)
 workouts.DELETE("/:id", workoutHandler.DeleteWorkout)
+
+// New workout-related endpoints
+workouts.GET("/upcoming", workoutHandler.GetUpcomingWorkouts)
+workouts.GET("/report", workoutHandler.GenerateReport)
+workouts.GET("/exercise/:exerciseId/progress", workoutHandler.GetExerciseProgress)
 }
 
 // Exercise routes

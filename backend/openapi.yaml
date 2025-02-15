@@ -1,0 +1,550 @@
+openapi: 3.0.3
+info:
+  title: Workout Tracker API
+  description: |
+    API documentation for the Workout Tracker application.
+    Provides endpoints for user authentication, workout management, and exercise tracking.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Exercise:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectid
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [cardio, strength, flexibility]
+        muscleGroup:
+          type: string
+          enum: [chest, back, legs, shoulders, arms, core]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateExerciseRequest:
+      type: object
+      required:
+        - name
+        - description
+        - category
+        - muscleGroup
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [cardio, strength, flexibility]
+        muscleGroup:
+          type: string
+          enum: [chest, back, legs, shoulders, arms, core]
+
+    Workout:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectid
+        userId:
+          type: string
+          format: objectid
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        exercises:
+          type: array
+          items:
+            type: object
+            properties:
+              exerciseId:
+                type: string
+                format: objectid
+              sets:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    reps:
+                      type: integer
+                    weight:
+                      type: number
+                    notes:
+                      type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateWorkoutRequest:
+      type: object
+      required:
+        - name
+        - date
+        - exercises
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        exercises:
+          type: array
+          items:
+            type: object
+            required:
+              - exerciseId
+              - sets
+            properties:
+              exerciseId:
+                type: string
+                format: objectid
+              sets:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - reps
+                  properties:
+                    reps:
+                      type: integer
+                    weight:
+                      type: number
+                    notes:
+                      type: string
+        notes:
+          type: string
+
+    UpdateWorkoutRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        exercises:
+          type: array
+          items:
+            type: object
+            properties:
+              exerciseId:
+                type: string
+                format: objectid
+              sets:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    reps:
+                      type: integer
+                    weight:
+                      type: number
+                    notes:
+                      type: string
+        notes:
+          type: string
+
+paths:
+  /auth/signup:
+    post:
+      summary: Create a new user account
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                name:
+                  type: string
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: Login to existing account
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/validate:
+    get:
+      summary: Validate JWT token
+      tags: [Authentication]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /exercises:
+    get:
+      summary: List all exercises
+      tags: [Exercises]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [cardio, strength, flexibility]
+        - in: query
+          name: muscle_group
+          schema:
+            type: string
+            enum: [chest, back, legs, shoulders, arms, core]
+      responses:
+        '200':
+          description: List of exercises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: Create a new exercise
+      tags: [Exercises]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExerciseRequest'
+      responses:
+        '201':
+          description: Exercise created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /exercises/{id}:
+    get:
+      summary: Get exercise by ID
+      tags: [Exercises]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: objectid
+      responses:
+        '200':
+          description: Exercise details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '404':
+          description: Exercise not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /workouts:
+    get:
+      summary: List user's workouts
+      tags: [Workouts]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of workouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workout'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: Create a new workout
+      tags: [Workouts]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkoutRequest'
+      responses:
+        '201':
+          description: Workout created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /workouts/{id}:
+    get:
+      summary: Get workout by ID
+      tags: [Workouts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: objectid
+      responses:
+        '200':
+          description: Workout details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      summary: Update workout
+      tags: [Workouts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: objectid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkoutRequest'
+      responses:
+        '200':
+          description: Workout updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      summary: Delete workout
+      tags: [Workouts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: objectid
+      responses:
+        '204':
+          description: Workout deleted successfully
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/exercises/seed:
+    post:
+      summary: Seed exercise database with default exercises
+      tags: [Admin]
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Exercises seeded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  count:
+                    type: integer
+        '500':
+          description: Failed to seed exercises
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

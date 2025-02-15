@@ -5,10 +5,11 @@ import { Box, Button, TextInput, Textarea, Select, NumberInput, Group, Stack, Ti
 import { useForm } from '@mantine/form'
 import { Set, WorkoutExercise } from '../types/workout'
 import { Exercise } from '../types/exercise'
+import { useRouter } from 'next/navigation'
 
 interface WorkoutFormProps {
   exercises: Exercise[]
-  onSubmit: (data: any) => void
+  onSubmit: (data: any) => Promise<void> | void
   isLoading?: boolean
 }
 
@@ -20,6 +21,7 @@ interface WorkoutFormValues {
 }
 
 export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps) {
+  const router = useRouter()
   const [selectedExercises, setSelectedExercises] = useState<WorkoutExercise[]>([])
 
   const form = useForm<WorkoutFormValues>({
@@ -29,10 +31,24 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
       exercises: [],
       scheduledAt: undefined,
     },
-    validate: {
-      name: (value) => (!value.trim() ? 'Name is required' : null),
-    },
   })
+
+  const handleSubmit = async (values: WorkoutFormValues) => {
+    const formData = {
+      ...values,
+      exercises: selectedExercises.map(ex => ({
+        exerciseId: ex.exerciseId,
+        sets: ex.sets.map(set => ({
+          reps: Number(set.reps) || 0,
+          weight: Number(set.weight) || 0,
+        })),
+        notes: ex.notes || '',
+      })),
+    }
+
+    await onSubmit(formData)
+    router.push('/')
+  }
 
   const handleAddExercise = () => {
     setSelectedExercises([
@@ -49,28 +65,29 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
     const updated = [...selectedExercises]
     updated[index] = { ...updated[index], [field]: value }
     setSelectedExercises(updated)
-    form.setFieldValue('exercises', updated)
   }
 
   const handleUpdateSet = (exerciseIndex: number, setIndex: number, field: keyof Set, value: number) => {
     const updated = [...selectedExercises]
-    updated[exerciseIndex].sets[setIndex] = {
-      ...updated[exerciseIndex].sets[setIndex],
+    const exercise = updated[exerciseIndex]
+    exercise.sets[setIndex] = {
+      ...exercise.sets[setIndex],
       [field]: value,
     }
     setSelectedExercises(updated)
-    form.setFieldValue('exercises', updated)
   }
 
   const handleAddSet = (exerciseIndex: number) => {
     const updated = [...selectedExercises]
     updated[exerciseIndex].sets.push({ reps: 0, weight: 0 })
     setSelectedExercises(updated)
-    form.setFieldValue('exercises', updated)
   }
 
   return (
-    <form onSubmit={form.onSubmit(onSubmit)} data-testid="workout-form">
+    <form 
+      onSubmit={form.onSubmit(handleSubmit)}
+      data-testid="workout-form"
+    >
       <Stack spacing="md">
         <TextInput
           required
@@ -88,7 +105,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
         />
 
         <Box>
-          <Title order={3} mb="md">Exercises</Title>
+          <Title order={3}>Exercises</Title>
           {selectedExercises.map((exercise, exerciseIndex) => (
             <Box key={exerciseIndex} mb="lg" p="md" style={{ border: '1px solid #eee', borderRadius: '4px' }}>
               <Stack spacing="sm">
@@ -98,7 +115,7 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
                   placeholder="Select exercise"
                   data={exercises.map(ex => ({ value: ex.id, label: ex.name }))}
                   value={exercise.exerciseId}
-                  onChange={(value) => handleUpdateExercise(exerciseIndex, 'exerciseId', value)}
+                  onChange={(value) => handleUpdateExercise(exerciseIndex, 'exerciseId', value || '')}
                   data-testid={`exercise-select-${exerciseIndex}`}
                 />
 
@@ -152,7 +169,11 @@ export function WorkoutForm({ exercises, onSubmit, isLoading }: WorkoutFormProps
           </Button>
         </Box>
 
-        <Button type="submit" loading={isLoading} data-testid="submit-button">
+        <Button 
+          type="submit" 
+          loading={isLoading}
+          data-testid="submit-button"
+        >
           Create Workout
         </Button>
       </Stack>

@@ -1,20 +1,20 @@
 'use client'
 
 import { MantineProvider } from '@mantine/core'
-import { Inter } from 'next/font/google'
-import '@mantine/core/styles.css'
 import { AuthProvider } from './providers/auth-context'
-
-const inter = Inter({ subsets: ['latin'] })
+import '@mantine/core/styles.css'
 
 export default function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <head>
+        <title>Workout Tracker</title>
+      </head>
+      <body>
         <MantineProvider>
           <AuthProvider>
             {children}

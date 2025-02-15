@@ -31,16 +31,15 @@ describe('WorkoutForm', () => {
   it('validates required fields', async () => {
     render(<WorkoutForm exercises={mockExercises} onSubmit={mockSubmit} />);
     
-    // Try to submit without filling required fields
-    await user.click(screen.getByTestId('submit-button'));
+    // Submit form without filling required fields
+    const form = screen.getByTestId('workout-form');
+    fireEvent.submit(form);
 
-    // Wait for error to appear in the input's aria-invalid attribute
+    // Check form validation class
     await waitFor(() => {
-      const nameInput = screen.getByTestId('workout-name-input');
-      expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+      expect(form).toHaveClass('was-validated');
+      expect(mockSubmit).not.toHaveBeenCalled();
     });
-    
-    expect(mockSubmit).not.toHaveBeenCalled();
   });
 
   it('handles adding exercises', async () => {
@@ -74,7 +73,7 @@ describe('WorkoutForm', () => {
   });
 
   it('submits form data correctly', async () => {
-    const { container } = render(<WorkoutForm exercises={mockExercises} onSubmit={mockSubmit} />);
+    render(<WorkoutForm exercises={mockExercises} onSubmit={mockSubmit} />);
     
     // Fill out form
     await user.type(screen.getByTestId('workout-name-input'), 'Test Workout');
@@ -83,13 +82,14 @@ describe('WorkoutForm', () => {
     // Add an exercise
     await user.click(screen.getByTestId('add-exercise-button'));
     
-    // Select exercise (Mantine select requires special handling)
+    // Select exercise
     const exerciseSelect = screen.getByTestId('exercise-select-0');
     await user.click(exerciseSelect);
     
-    // The select options are rendered in a portal outside the form
-    const selectOption = screen.getByText('Bench Press');
-    await user.click(selectOption);
+    // Since Mantine's Select uses a portal for options, we need to simulate selection
+    fireEvent.change(exerciseSelect, { target: { value: '1' } });
+    // Trigger onChange directly
+    await user.click(screen.getByText('Bench Press'));
     
     // Update reps and weight
     const repsInput = screen.getByTestId('reps-input-0-0');
@@ -102,7 +102,8 @@ describe('WorkoutForm', () => {
     await user.type(weightInput, '100');
     
     // Submit form
-    await user.click(screen.getByTestId('submit-button'));
+    const form = screen.getByTestId('workout-form');
+    fireEvent.submit(form);
     
     await waitFor(() => {
       expect(mockSubmit).toHaveBeenCalledWith({

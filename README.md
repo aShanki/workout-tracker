@@ -1,121 +1,215 @@
-# Workout Tracker Application
+# Workout Tracker
 
-A full-stack application for tracking workouts, with authentication, exercise management, and workout planning capabilities.
-
-## Technology Stack
-
-- **Backend**:
-  - Go with Gin framework
-  - MongoDB for database
-  - JWT for authentication
-
-- **Frontend**:
-  - Next.js
-  - Mantine UI components
-  - TypeScript
-
-## Project Structure
-
-```
-.
-├── backend/
-│   ├── auth/           # Authentication middleware and utilities
-│   ├── handlers/       # API route handlers
-│   ├── models/         # Data models
-│   ├── Dockerfile
-│   ├── main.go        # Entry point
-│   └── .env           # Backend configuration
-├── frontend/
-│   ├── app/           # Next.js app directory
-│   │   ├── components/  # React components
-│   │   ├── providers/   # Context providers
-│   │   ├── services/   # API services
-│   │   └── types/      # TypeScript definitions
-│   ├── Dockerfile
-│   └── .env           # Frontend configuration
-└── docker-compose.yml # Container orchestration
-```
+A full-stack web application for tracking workouts, built with Next.js, Go, and MongoDB.
 
 ## Features
 
-- User authentication (signup/login)
-- Exercise management
-- Workout planning and tracking
-- Progress history
-- Containerized development and deployment
+- User authentication and authorization with JWT
+- Create and manage workouts
+- Track exercises, sets, and reps
+- Schedule workouts and track progress
+- Generate workout reports and analytics
+- Comprehensive exercise database with various categories and muscle groups
+
+## Technology Stack
+
+- Frontend: Next.js, TypeScript, Mantine UI
+- Backend: Go, Gin framework
+- Database: MongoDB
+- Testing: Jest, React Testing Library, Playwright
 
 ## Getting Started
 
-1. **Prerequisites**
-   - Docker and Docker Compose
-   - Make (optional, for using Makefile commands)
+### Prerequisites
 
-2. **Environment Setup**
-   - Copy `.env.example` to `.env` in both frontend and backend directories
-   - Adjust environment variables as needed
+- Node.js (v18 or later)
+- Go (v1.21 or later)
+- MongoDB (v6 or later)
+- Docker and Docker Compose (optional)
 
-3. **Running the Application**
-   ```bash
-   # Start all services
-   docker-compose up -d
+### Installation
 
-   # Seed initial exercise data (optional)
-   curl -X POST http://localhost:8080/api/v1/admin/exercises/seed
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/workout-tracker.git
+cd workout-tracker
+```
 
-   # Stop all services
-   docker-compose down
-   ```
+2. Install dependencies:
+```bash
+# Frontend dependencies
+cd frontend
+npm install
 
-4. **Accessing the Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
-   - API Documentation: http://localhost:8080/api/v1/docs
+# Backend dependencies
+cd ../backend
+go mod download
+```
 
-## Development
+3. Set up environment variables:
+```bash
+# Frontend (.env)
+cp frontend/.env.example frontend/.env
 
-1. **Backend Development**
-   ```bash
-   # Run backend tests
-   cd backend && go test ./...
-   ```
+# Backend (.env)
+cp backend/.env.example backend/.env
+```
 
-2. **Frontend Development**
-   ```bash
-   # Install dependencies
-   cd frontend && npm install
+4. Configure MongoDB:
+- Set `MONGO_URI` in backend/.env (default: "mongodb://mongo:27017/fitness_tracker")
+- For local development without Docker, use "mongodb://localhost:27017/fitness_tracker"
 
-   # Run development server
-   npm run dev
-   ```
+### Running the Application
 
-## API Endpoints
+Using Docker:
+```bash
+docker-compose up
+```
 
-### Authentication
-- POST `/api/v1/auth/signup` - Create a new user account
-- POST `/api/v1/auth/login` - Login to existing account
-- GET `/api/v1/auth/validate` - Validate JWT token
+Without Docker:
+```bash
+# Start MongoDB (make sure it's installed and running)
+mongod
 
-### Exercises
-- GET `/api/v1/exercises` - List all exercises
-- GET `/api/v1/exercises/:id` - Get exercise details
-- POST `/api/v1/exercises` - Create new exercise
-- POST `/api/v1/admin/exercises/seed` - Seed initial exercises
+# Start backend (in backend directory)
+go run main.go
 
-### Workouts
-- GET `/api/v1/workouts` - List user's workouts
-- POST `/api/v1/workouts` - Create new workout
-- GET `/api/v1/workouts/:id` - Get workout details
-- PUT `/api/v1/workouts/:id` - Update workout
-- DELETE `/api/v1/workouts/:id` - Delete workout
+# Start frontend (in frontend directory)
+npm run dev
+```
+
+### Initialize Exercise Database
+
+The application comes with a comprehensive exercise database. To seed it:
+
+```bash
+# Using curl
+curl -X POST http://localhost:8080/api/v1/admin/exercises/seed
+
+# Or through the frontend application after logging in as admin
+```
+
+## API Documentation
+
+The API is documented using OpenAPI Specification 3.0. You can find the full documentation in `backend/openapi.yaml`.
+
+To view the API documentation:
+1. Copy the contents of `backend/openapi.yaml`
+2. Visit [Swagger Editor](https://editor.swagger.io/)
+3. Paste the contents to view the interactive documentation
+
+Key API features:
+- JWT-based authentication
+- CRUD operations for workouts
+- Exercise management
+- Workout scheduling
+- Progress tracking and reports
+
+## Reports and Analytics
+
+The application provides various reports and analytics:
+
+1. Workout History
+- View past workouts with detailed exercise information
+- Filter by date range, exercise type, or muscle group
+- Track progress over time
+
+2. Progress Tracking
+- Visual representations of weight/rep progression
+- Personal records tracking
+- Volume and intensity metrics
+
+3. Workout Scheduling
+- Schedule future workouts
+- Get reminders and notifications
+- View upcoming workout calendar
+
+## Testing
+
+The project includes both unit tests and end-to-end tests.
+
+### Running Tests
+
+To run all tests (unit and E2E):
+```bash
+./test.sh
+```
+
+### Unit Tests
+
+Unit tests are written using Jest and React Testing Library.
+
+```bash
+# Run unit tests
+cd frontend
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+### End-to-End Tests
+
+E2E tests are written using Playwright.
+
+```bash
+# Run E2E tests
+cd frontend
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+
+# Run E2E tests in debug mode
+npm run test:e2e:debug
+```
+
+### Writing Tests
+
+#### Unit Tests
+- Tests are located next to their components in `__tests__` directories
+- Use React Testing Library for component testing
+- Follow the Arrange-Act-Assert pattern
+
+Example:
+```typescript
+import { render, screen } from '../../../test/test-utils';
+import { MyComponent } from '../MyComponent';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    render(<MyComponent />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+});
+```
+
+#### E2E Tests
+- E2E tests are located in `frontend/e2e` directory
+- Use Playwright's Page Object Model when applicable
+- Test complete user journeys
+
+Example:
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('user can create a workout', async ({ page }) => {
+  await page.goto('/');
+  await page.click('text=Create Workout');
+  await page.fill('[data-testid="workout-name"]', 'Test Workout');
+  await page.click('text=Save');
+  await expect(page.getByText('Workout created')).toBeVisible();
+});
+```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
 ## License
 
-MIT License
+MIT License - see LICENSE file for details
