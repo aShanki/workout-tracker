@@ -45,3 +45,4 @@ yarn-error.log*
 
 chatlogs/
 frontend/test-results/
+frontend/playwright-report/

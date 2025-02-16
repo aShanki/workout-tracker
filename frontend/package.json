@@ -6,14 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "jest --testPathIgnorePatterns=e2e/",
-    "test:watch": "jest --watch --testPathIgnorePatterns=e2e/",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:all": "npm run test && npm run test:e2e",
-    "playwright:install-deps": "playwright install-deps chromium firefox webkit"
+    "lint": "next lint"
   },
   "dependencies": {
     "@mantine/core": "^7.0.0",
@@ -27,21 +20,11 @@
     "react-dom": "^18"
   },
   "devDependencies": {
-    "@babel/preset-react": "^7.23.3",
-    "@babel/preset-typescript": "^7.23.3",
-    "@playwright/test": "^1.41.1",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
-    "@testing-library/user-event": "^14.5.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "babel-jest": "^29.7.0",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.31",
     "postcss-preset-mantine": "1.11.0",
     "prettier": "^3.1.0",
