@@ -1,0 +1,1 @@
+If you will run any docker or npm commands, run them in quiet mode with a timeout of 180 seconds. This will prevent the build from hanging, and spamming the terminal.
